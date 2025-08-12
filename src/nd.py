@@ -20,7 +20,6 @@ import os
 st.set_page_config(page_title="NODAL Dashboard", layout="wide", initial_sidebar_state="expanded")
 st.title("Production Well Evaluation Dashboard")
 
-
 # Constants & Defaults
 
 MAX_PRESSURE = 10000  # psi 
@@ -262,10 +261,10 @@ with tab1:
         fig_pressure = go.Figure()
         fig_pressure.add_trace(go.Scatter(x=p, y=depths,mode='lines+markers', name='Pressure',line=dict(color='red', width=2),hovertemplate='<b>%{x:.0f} psi</b> at %{y:.0f} ft'))
 
-        fig_pressure.update_layout(yaxis_title='Depth (ft)',xaxis_title='Pressure (psi)',yaxis=dict(autorange='reversed'),height=600,hovermode='x unified')
- 
+        fig_pressure.update_layout(yaxis_title='Depth (ft)',xaxis_title='Pressure (psi)',yaxis=dict(autorange='reversed', title_font=dict(family= 'Times New Roman', color='black', size=20), tickfont=dict(color='black', size=20)), 
+                                   xaxis=dict(title_font=dict(family= 'Times New Roman', color='black', size=20), tickfont=dict(color='black', size=20)), height=600,hovermode='x unified')                   
         st.plotly_chart(fig_pressure, use_container_width=True)
-        
+
         # Pressure summary stats
         pressure_drop = p[0] - p[-1]
         avg_gradient = pressure_drop / depth if depth > 0 else 0
@@ -276,7 +275,8 @@ with tab1:
         fig_temp = go.Figure()
         fig_temp.add_trace(go.Scatter(x=temps, y=depths,mode='lines+markers', name='Temperature',line=dict(color='blue', width=2),hovertemplate='<b>%{x:.1f} °F</b> at %{y:.0f} ft'))
  
-        fig_temp.update_layout(yaxis_title='Depth (ft)',xaxis_title='Temperature (°F)', yaxis=dict(autorange='reversed'), height=600,hovermode='x unified')
+        fig_temp.update_layout(yaxis_title='Depth (ft)',xaxis_title='Temperature (°F)', yaxis=dict(autorange='reversed',title_font=dict(family= 'Times New Roman', color='black', size=20), tickfont=dict(color='black', size=20)),
+                               xaxis=dict(title_font=dict(family= 'Times New Roman', color='black', size=20), tickfont=dict(color='black', size=20)), height=600,hovermode='x unified')
         st.plotly_chart(fig_temp, use_container_width=True)
         
         # Temperature summary stats
@@ -333,7 +333,9 @@ with tab2:
         # Optimized rate marker (safe access)
         if 'optimal' in nodal_data and nodal_data['optimal']:
             fig_nodal.add_vline( x=nodal_data['optimal'], line=dict(color="orange", width=2, dash="dash"), annotation_text=f"Optimized: {nodal_data['optimal']:.0f} STB/d", annotation_position="bottom right" )
-        fig_nodal.update_layout( xaxis_title='Liquid Rate (STB/d)', yaxis_title='Bottomhole Pressure (psi)', legend=dict(orientation="h", yanchor="bottom", y=1.02), height=600, hovermode='x unified')
+        fig_nodal.update_layout( xaxis_title='Liquid Rate (STB/d)', yaxis_title='Bottomhole Pressure (psi)', legend=dict(orientation="h", yanchor="bottom", y=1.02), 
+                        xaxis=dict(title_font=dict(family='Times New Roman', color='black', size=20),tickfont=dict(family='Times New Roman', color='black', size=20)),
+                        yaxis=dict( title_font=dict(family='Times New Roman', color='black', size=20), tickfont=dict(family='Times New Roman', color='black', size=20)), height=600, hovermode='x unified')
         st.plotly_chart(fig_nodal, use_container_width=True)
         
         # Performance summary
@@ -359,7 +361,9 @@ with tab3:
                 fig_pattern.add_trace(go.Scatter(x=pattern_data['Pressure (psi)'],y=pattern_data['Depth (ft)'],mode='markers',name=pattern, marker=dict(color=colors.get(pattern.split(':')[0], '#7f7f7f'),
                 size=8, opacity=0.8,line=dict(width=1, color='DarkSlateGrey')),hovertemplate='<b>%{text}</b><br>%{x:.0f} psi at %{y:.0f} ft',text=[pattern]*len(pattern_data) ))
      
-        fig_pattern.update_layout(title='Flow Pattern Distribution',yaxis_title='Depth (ft)', xaxis_title='Pressure (psi)',yaxis=dict(autorange='reversed'),height=700,legend_title="Flow Patterns")
+        fig_pattern.update_layout(title='Flow Pattern Distribution',yaxis_title='Depth (ft)', xaxis_title='Pressure (psi)',yaxis=dict(autorange='reversed', title_font=dict(family='Times New Roman', color='black', size=20),
+                tickfont=dict(family='Times New Roman', color='black', size=20)), xaxis=dict(title_font=dict(family='Times New Roman', color='black', size=20),
+                tickfont=dict(family='Times New Roman', color='black', size=20)), height=700,legend_title="Flow Patterns")
         st.plotly_chart(fig_pattern, use_container_width=True)
 
 
