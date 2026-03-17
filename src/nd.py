@@ -16,11 +16,11 @@ import pandas as pd
 from typing import Tuple, List, Dict, Optional
 import os
 
-# setting up Streamlit page
+# Streamlit page
 st.set_page_config(page_title="NODAL Dashboard", layout="wide", initial_sidebar_state="expanded")
 st.title("Production Well Evaluation Dashboard")
 
-# Constants & Defaults
+# Constants and Defaults
 
 MAX_PRESSURE = 10000  # psi 
 MIN_TUBING_DIAM = 1.0  # inches
@@ -34,7 +34,6 @@ st.session_state.setdefault('pressure_data', {})
 st.session_state.setdefault('nodal_data', {})
 
 # Sidebar Configuration
-
 with st.sidebar:
     st.header("Well Parameters")
     
@@ -79,7 +78,7 @@ with st.sidebar:
         gor = st.number_input("Gas Oil Ratio (SCF/STB)", 0, 5000, int(DEFAULT_PARAMS['gor']),
                            help="Gas-oil ratio at current conditions")
     
-    # Additional Controls for resetting and clearing cache
+    # Controls for resetting and clearing cache
     st.divider()
     st.caption("System Controls")
     if st.button("Reset to Defaults"):
@@ -96,8 +95,7 @@ with st.sidebar:
 water_rate = (oil_rate * water_cut) / 100.0 if water_cut > 0.0 else 0.0
 
 
-# Core Calculation Functions (Cached)
-
+# Calculation Functions
 @st.cache_data(show_spinner="Calculating temperature profile...")
 def temp_gradient(t0: float, t1: float, depth: float) -> float:
     """Calculate geothermal gradient with validation"""
@@ -122,7 +120,7 @@ def calculate_pressure_traverse(params: Dict[str, float]) -> Tuple[List[float], 
     p = [max(0, min(params['thp'], MAX_PRESSURE))]  # Clamp to physical limits
     patterns = ['Surface']
     
-    # Iterate through depth points
+    # Iteration through depth points
     for i in range(1, len(depths)):
         try:
             dz = depths[i] - depths[i-1]
@@ -132,7 +130,7 @@ def calculate_pressure_traverse(params: Dict[str, float]) -> Tuple[List[float], 
             if current_pressure <= 0 or current_pressure > MAX_PRESSURE:
                 raise ValueError(f"Invalid pressure {current_pressure} psi at depth {depths[i-1]} ft")
             
-            # Call BB.Pgrad with validation
+            # BB.Pgrad with validation
             result = BB.Pgrad(
                 current_pressure, temps[i], params['oil_rate'], params['water_rate'], params['gor'],
                 max(0.3, min(params['gas_grav'], 2.0)),  # Clamp to reasonable range
@@ -141,7 +139,7 @@ def calculate_pressure_traverse(params: Dict[str, float]) -> Tuple[List[float], 
                 max(MIN_TUBING_DIAM, min(params['diameter'], MAX_TUBING_DIAM)),
                 max(-90.0, min(params['angle'], 90.0)))
             
-            # Handling BB.Pgrad results
+            # BB.Pgrad results
             if isinstance(result, tuple) and len(result) >= 3:
                 dpdz, holdup, pattern_code = result
                 pattern_map = {1: 'Segregated',2: 'Transition',3: 'Intermittent',4: 'Distributed'}
@@ -150,7 +148,7 @@ def calculate_pressure_traverse(params: Dict[str, float]) -> Tuple[List[float], 
                 dpdz = float(result)
                 pattern_name = 'Unknown'
             
-            # Calculate new pressure with constraints
+            # new pressure with constraints
             new_pressure = current_pressure + dpdz * dz
             new_pressure = max(0, min(new_pressure, MAX_PRESSURE))  # Apply physical limits
             p.append(new_pressure)
@@ -179,7 +177,7 @@ def calculate_vlp(rates: List[float], params: Dict[str, float]) -> List[float]:
         p_profile, _, _, _ = calculate_pressure_traverse(rate_params)
         bhps.append(p_profile[-1])
         
-        # Update progress
+        # progress update
         progress = int((idx + 1) / total * 100)
         progress_bar.progress(progress)
     
@@ -220,14 +218,11 @@ def find_intersection(x: List[float], y1: List[float], y2: List[float]) -> Optio
     except Exception:
         return None
 
-
-
-# Main Calculations
-# Prepare parameters dictionary with validation
+# parameters dictionary 
 params = {'oil_rate': float(oil_rate),'water_rate': float(water_rate),'gor': float(gor),'gas_grav': float(gas_grav),'oil_grav': float(oil_grav),
           'wtr_grav': float(wtr_grav),'diameter': float(diameter),'angle': float(angle),'thp': float(thp),'tht': float(tht),'twf': float(twf),'depth': float(depth)}
 
-# Calculate pressure traverse with error handling
+# pressure traverse 
 try:
     with st.spinner("Calculating wellbore profiles..."):
         p, patterns, depths, temps = calculate_pressure_traverse(params)
@@ -235,7 +230,7 @@ except Exception as e:
     st.error(f"Pressure calculation failed: {str(e)}")
     st.stop()
 
-# Calculate VLP and IPR
+# VLP and IPR
 try:
     with st.spinner("Generating performance curves..."):
         rate_range = list(range(100, 13000, 500))
@@ -246,7 +241,7 @@ except Exception as e:
     st.error(f"Performance curve calculation failed: {str(e)}")
     st.stop()
 
-# Create pattern table
+# pattern table
 pattern_df = pd.DataFrame({"Depth (ft)": depths,"Pressure (psi)": p,"Temperature (°F)": temps,"Flow Pattern": patterns})
 
 # Dashboard Visualization
@@ -318,7 +313,7 @@ with tab2:
         # Current VLP
         fig_nodal.add_trace(go.Scatter(x=rate_range, y=bhps,mode='lines', name='VLP (Current)',line=dict(color='blue', width=3),hovertemplate='%{y:.0f} psi at %{x:.0f} STB/d'))
  
-        # Optimized VLP (if available) - Safe access
+        # Optimized VLP (if available)
         nodal_data = st.session_state.get('nodal_data', {})
         if 'bhps' in nodal_data:
             fig_nodal.add_trace(go.Scatter(x=rate_range, y=nodal_data['bhps'], mode='lines', name='VLP (Optimized)',line=dict(color='green', width=3, dash='dot'),hovertemplate='%{y:.0f} psi at %{x:.0f} STB/d'))
@@ -330,7 +325,7 @@ with tab2:
         if optimal_rate:
             fig_nodal.add_vline( x=optimal_rate, line=dict(color="purple", width=2, dash="dash"), annotation_text=f"Optimal: {optimal_rate:.0f} STB/d", annotation_position="top left" )
         
-        # Optimized rate marker (safe access)
+        # Optimized rate marker 
         if 'optimal' in nodal_data and nodal_data['optimal']:
             fig_nodal.add_vline( x=nodal_data['optimal'], line=dict(color="orange", width=2, dash="dash"), annotation_text=f"Optimized: {nodal_data['optimal']:.0f} STB/d", annotation_position="bottom right" )
         fig_nodal.update_layout( xaxis_title='Liquid Rate (STB/d)', yaxis_title='Bottomhole Pressure (psi)', legend=dict(orientation="h", yanchor="bottom", y=1.02), 
@@ -370,7 +365,7 @@ with tab3:
     with col2:
         st.subheader("Flow Pattern Analysis")
         
-        # Flow pattern table - Fixed with map instead of applymap
+        # Flow pattern table
         st.dataframe(
             pattern_df.style.map(
                 lambda x: 'background-color: #1f77b4; color: white' if 'Segregated' in str(x) else 
