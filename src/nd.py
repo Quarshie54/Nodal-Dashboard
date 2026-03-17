@@ -36,7 +36,7 @@ st.session_state.setdefault('nodal_data', {})
 # Sidebar Configuration
 
 with st.sidebar:
-    st.header("⚙️ Well Parameters")
+    st.header("Well Parameters")
     
     # Fluid Properties
     with st.expander("Fluid Properties", expanded=True):
@@ -251,7 +251,7 @@ pattern_df = pd.DataFrame({"Depth (ft)": depths,"Pressure (psi)": p,"Temperature
 
 # Dashboard Visualization
 # Main tabs
-tab1, tab2, tab3, = st.tabs(['📊 Wellbore Profiles', '⚡ Nodal Analysis', '🌊 Flow Patterns'])
+tab1, tab2, tab3, = st.tabs(['Wellbore Profiles', 'Nodal Analysis', 'Flow Patterns'])
 
 with tab1:
     col1, col2 = st.columns(2)
